@@ -6,9 +6,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout container;
 
     private CustomToggleView passcode_view;
+    private ProgressBar spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         container = findViewById(R.id.lock_notification_container);
+        spinner = findViewById(R.id.spinner);
 
         getTitleView(container, "Title");
         passcode_view = getToggleView(container, "passcode", ID_PASSCODE);
@@ -55,7 +59,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
+        getInitialValue();
+    }
+
+    private void getInitialValue() {
         // get initial status from server
+        spinner.setVisibility(View.VISIBLE);
+        spinner.bringToFront();
         String url = String.format("https://service.skywatch24.com/api/v2/devices/%s/locknotification?api_key=%s", "49209", "b9a939c776adbe973d56bbf5654fc470");
         StringRequest request = new StringRequest(url, response -> {
             try {
@@ -65,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
                 passcode_view.setStatus(b);
             } catch (JSONException e) {
                 e.printStackTrace();
+            } finally {
+                spinner.setVisibility(View.GONE);
             }
         }, error -> {
             error.printStackTrace();
