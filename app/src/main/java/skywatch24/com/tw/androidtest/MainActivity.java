@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private CustomToggleView passcode_view;
     private ProgressBar spinner;
 
+    private boolean is_dirty;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
 
         // initialize
         passcode_view.setStatus(false);
+
+        is_dirty = false;
     }
 
     @Override
@@ -102,12 +106,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class CustomToggleView extends RelativeLayout {
+
+        private boolean status;
+
         private String title = "";
         private TextView title_text;
         private ImageView toggle_image;
         private int id = -1;
         public CustomToggleView(Context context) {
             super(context);
+
+            this.status = false;
+
             RelativeLayout.LayoutParams container_params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, getDP(64));
             setLayoutParams(container_params);
             title_text = new TextView(getApplicationContext());
@@ -131,12 +141,20 @@ public class MainActivity extends AppCompatActivity {
             addView(title_text);
             addView(toggle_image);
 
+            toggle_image.setOnClickListener(__ -> {
+                this.status = !this.status;
+                toggle_image.setImageResource(this.status?R.drawable.ic_on:R.drawable.ic_off);
+                is_dirty = true;
+                invalidateOptionsMenu();
+            });
+
         }
         public void setTitle(String str) {
             this.title = str;
             title_text.setText(str);
         }
         public void setStatus(boolean status) {
+            this.status = status;
             if (status) {
                 toggle_image.setImageResource(R.drawable.ic_on);
             } else {
@@ -174,7 +192,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void prepareOptionMenu(Menu menu) {
         menu.clear();
-        getMenuInflater().inflate(R.menu.menu_done, menu);
+        if (is_dirty) {
+            getMenuInflater().inflate(R.menu.menu_done, menu);
+        }
     }
 
     @Override
