@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
     private LinearLayout container;
 
+    private CustomToggleView passcode_view;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,8 +45,13 @@ public class MainActivity extends AppCompatActivity {
         container = findViewById(R.id.lock_notification_container);
 
         getTitleView(container, "Title");
-        getToggleView(container, "passcode", ID_PASSCODE);
+        passcode_view = getToggleView(container, "passcode", ID_PASSCODE);
+
+        // initialize
+        passcode_view.setStatus(false);
     }
+
+
 
     @Override
     protected void onResume() {
