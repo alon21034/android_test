@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -32,6 +34,8 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
+
+    private final String TAG = "main_activity";
 
     private final int ID_PASSCODE = 0;
 
@@ -69,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         String url = String.format("https://service.skywatch24.com/api/v2/devices/%s/locknotification?api_key=%s", "49209", "b9a939c776adbe973d56bbf5654fc470");
         StringRequest request = new StringRequest(url, response -> {
             try {
-                Log.d("main_activity", response);
+                Log.d(TAG, response);
                 JSONObject json = new JSONObject(response);
                 boolean b = json.optString("passcode").equals("1");
                 passcode_view.setStatus(b);
@@ -157,4 +161,29 @@ public class MainActivity extends AppCompatActivity {
         return (int) (dps * scale + 0.5f);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        prepareOptionMenu(menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    private void prepareOptionMenu(Menu menu) {
+        menu.clear();
+        getMenuInflater().inflate(R.menu.menu_done, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_action_done:
+                Log.d(TAG, "click menu item");
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
