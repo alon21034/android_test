@@ -16,6 +16,9 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
@@ -24,6 +27,9 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import io.reactivex.Emitter;
 import io.reactivex.Observable;
@@ -46,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean is_dirty;
 
+    private RequestQueue request_queue;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
 
         container = findViewById(R.id.lock_notification_container);
         spinner = findViewById(R.id.spinner);
+
+        request_queue = Volley.newRequestQueue(getApplicationContext());
 
         getTitleView(container, "Title");
         passcode_view = getToggleView(container, "passcode", ID_PASSCODE);
@@ -89,7 +99,38 @@ public class MainActivity extends AppCompatActivity {
         }, error -> {
             error.printStackTrace();
         });
-        Volley.newRequestQueue(getApplicationContext()).add(request);
+        request_queue.add(request);
+    }
+
+    private void setSettingValue(boolean status) {
+        spinner.setVisibility(View.VISIBLE);
+        spinner.bringToFront();
+        String url = String.format("https://service.skywatch24.com/api/v2/devices/%s/locknotification", "49209");
+        StringRequest request = new StringRequest(Request.Method.POST, url, response -> {
+            spinner.setVisibility(View.GONE);
+        }, Throwable::printStackTrace) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                HashMap<String, String> params = new HashMap<>();
+
+                // generate params
+                try {
+                    JSONObject setting = new JSONObject();
+                    setting.put("passcode", status ? "1" : "0");
+                    setting.put("fingerprint", "0");
+                    setting.put("keycard", "0");
+
+                    params.put("api_key", "b9a939c776adbe973d56bbf5654fc470");
+                    params.put("lock_notification", setting.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return params;
+            }
+        };
+
+        request_queue.add(request);
+
     }
 
     private TextView getTitleView(ViewGroup parent, String title) {
@@ -161,6 +202,9 @@ public class MainActivity extends AppCompatActivity {
                 toggle_image.setImageResource(R.drawable.ic_off);
             }
         }
+        public boolean getStatus() {
+            return this.status;
+        }
         public void setId(int id) {
             this.id = id;
         }
@@ -202,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.menu_action_done:
                 Log.d(TAG, "click menu item");
+                setSettingValue(passcode_view.getStatus());
                 break;
         }
         return super.onOptionsItemSelected(item);
