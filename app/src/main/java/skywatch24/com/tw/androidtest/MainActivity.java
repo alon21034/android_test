@@ -51,11 +51,25 @@ public class MainActivity extends AppCompatActivity {
         passcode_view.setStatus(false);
     }
 
-
-
     @Override
     protected void onResume() {
         super.onResume();
+
+        // get initial status from server
+        String url = String.format("https://service.skywatch24.com/api/v2/devices/%s/locknotification?api_key=%s", "49209", "b9a939c776adbe973d56bbf5654fc470");
+        StringRequest request = new StringRequest(url, response -> {
+            try {
+                Log.d("main_activity", response);
+                JSONObject json = new JSONObject(response);
+                boolean b = json.optString("passcode").equals("1");
+                passcode_view.setStatus(b);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }, error -> {
+            error.printStackTrace();
+        });
+        Volley.newRequestQueue(getApplicationContext()).add(request);
     }
 
     private TextView getTitleView(ViewGroup parent, String title) {
