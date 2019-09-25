@@ -1,7 +1,5 @@
 package skywatch24.com.tw.androidtest;
 
-import android.arch.lifecycle.ViewModel;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.graphics.Color;
@@ -19,17 +17,16 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.ObservableOperator;
+import io.reactivex.Observer;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
     private MainViewModel view_model;
 
+    private CompositeDisposable cd;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +54,9 @@ public class MainActivity extends AppCompatActivity {
         getTitleView(container, "Title");
         passcode_view = getToggleView(container, "passcode", ID_PASSCODE);
 
-        view_model = ViewModelProviders.of(this).get(MainViewModel.class);
+        DataSource data_source = DataSource.getInstance(getApplicationContext());
+
+        view_model = new ViewModelFactory(getApplication(), data_source).create(MainViewModel.class);
 
         view_model.getStatus().observe(this, b -> {
             passcode_view.setStatus(b);
@@ -73,12 +74,22 @@ public class MainActivity extends AppCompatActivity {
                 spinner.setVisibility(View.GONE);
             }
         });
+
+        view_model.loadStatus();
+
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        cd.clear();
     }
 
     private TextView getTitleView(ViewGroup parent, String title) {
